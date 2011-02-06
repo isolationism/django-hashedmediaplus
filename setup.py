@@ -11,7 +11,7 @@ setup(
     author='Kevin Williams',
     author_email='kevin@weblivion.com',
     version='0.1',
-    license='BSD',
+    license='BEER-WARE',
     url='https://github.com/isolationism/django-hashedmediaplus',
     download_url='https://github.com/isolationism/django-hashedmediaplus/tarball/master',
     description='A fork of django-hashedmedia with some performance and functional enhancements',

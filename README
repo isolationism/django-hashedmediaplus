@@ -38,18 +38,19 @@ Installation
 ============
 
 On production servers as well as machines which are not using buildout, you
-should install the egg using setuptools:
+should install the tarball or egg using setuptools:
 
-    easy_install packagename.egg
+    easy_install packagename.ext
 
 If you are using Buildout:
 
 * Add django_hashedmediaplus to your "[buildout] > parts"
 
     [buildout]
+    find-links = http://github.com/isolationism/django-hashedmediaplus/tarball/master#egg=django-hashedmediaplus
     parts = 
         # ...
-        django_hashedmediaplus
+        django-hashedmediaplus
 
 * Specify django_hashedmediaplus in your "[django] > eggs" section. This will
   make the package available to the Django python environment.
@@ -57,13 +58,13 @@ If you are using Buildout:
     [django]
     eggs = 
         # ...
-        django_hashedmediaplus
+        django-hashedmediaplus
 
 * Add a new section: 
 
-    [django_hashedmediaplus]
+    [django-hashedmediaplus]
     recipe = zc.recipe.egg
-    find-links = http://media.weblivion.com/eggs/
+    
 
 IMPORTANT NOTE REGARDING EGGS:
 

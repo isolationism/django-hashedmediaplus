@@ -7,7 +7,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='django_hashedmediaplus',
+    name='django-hashedmediaplus',
     version='0.1',
     description='A fork of django-hashedmedia that uses a hashed media manifest file '\
         '(instead of relying solely on the cache implementation), and providing URL '\

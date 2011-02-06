@@ -8,14 +8,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-hashedmediaplus',
-    version='0.1',
-    description='A fork of django-hashedmedia that uses a hashed media manifest file '\
-        '(instead of relying solely on the cache implementation), and providing URL '\
-        'rewriting of image media linked via CSS file to its hashed filename counterpart.',
     author='Kevin Williams',
     author_email='kevin@weblivion.com',
-    url='http://www.weblivion.com/',
-    packages=find_packages(),
+    version='0.1',
+    license='BSD',
+    url='https://github.com/isolationism/django-hashedmediaplus',
+    download_url='https://github.com/isolationism/django-hashedmediaplus/tarball/master',
+    description='A fork of django-hashedmedia with some performance and functional enhancements',
+    packages=find_packages('django_hashedmediaplus'),
     include_package_data = False,
     install_requires = ['django'],
 )

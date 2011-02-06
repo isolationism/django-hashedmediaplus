@@ -1,0 +1,243 @@
+
+Explanation
+===========
+
+This Django module is designed explicitly for a relatively simple purpose: to
+create a copy of media files used in your application, then change the filename
+to a hash of that file's contents. When the contents change, the hash (and thus
+the filename) change.
+
+The practical application of this technology is of course to set a so-called 
+"far-future expires" header on responses to requests for these static media
+files. The web browser can be assured that the copy of the file they have will
+never change on the server; if the file is changed, a new filename will appear
+and the client will download that instead.
+
+django_hashedmediaplus is a fork of django_hashedmedia, written by Filip
+Noetzel.
+
+
+Notes
+=====
+
+This package is designed to be used in conjunction with django-compress, which 
+performs the function of regathering multiple CSS and JavaScript files and
+creating a single (or smaller number of) source files by concatenation -- then 
+applying optmization techniques to reduce the size of files further (e.g. 
+"compression/obfuscation").
+
+The overarching goal of this configuration is threefold:
+
+* Less trips to the web server for initial file caches mean faster page renders
+* Compressed/obfuscation makes for smaller files, esp. when source code is
+  whitespace- and comment-heavy
+* Less unnecessary requests for cached files that are still valid
+
+
+Installation
+============
+
+On production servers as well as machines which are not using buildout, you
+should install the egg using setuptools:
+
+    easy_install packagename.egg
+
+If you are using Buildout:
+
+* Add django_hashedmediaplus to your "[buildout] > parts"
+
+    [buildout]
+    parts = 
+        # ...
+        django_hashedmediaplus
+
+* Specify django_hashedmediaplus in your "[django] > eggs" section. This will
+  make the package available to the Django python environment.
+    
+    [django]
+    eggs = 
+        # ...
+        django_hashedmediaplus
+
+* Add a new section: 
+
+    [django_hashedmediaplus]
+    recipe = zc.recipe.egg
+    find-links = http://media.weblivion.com/eggs/
+
+IMPORTANT NOTE REGARDING EGGS:
+
+You CANNOT use this package as an .egg file in Django; the command-line tools
+for regenerating the hashed media will not be found.
+
+The egg file is explicitly marked as not being "zip-safe" -- which means that 
+if you install it using setuptools (or Buildout does it for you) then there 
+won't be any problems.
+
+On the other hand, if you copy the  .egg file into buildout's "/eggs" directory,
+or directly into your Python installation's "/site-packages/" directory, 
+THE COMMAND-LINE TOOLS WILL NOT SHOW UP! You have been warned!
+    
+
+Configuration
+=============
+
+First, add django_hashedmediaplus to INSTALLED_APPS in settings.py:
+
+    INSTALLED_APPS = (
+        # ...
+        'django_hashedmedia',
+    )
+
+The best practice is probably to create a breakout settings file specifically
+for hashed media. I usually call this "settings_hashedmedia.py".
+
+Your settings file should look like this:
+
+----------------------------------- 8< snip -----------------------------------
+
+import os, hashlib 
+
+# This is where the hashed filenames will go. 
+HASHEDMEDIA_ROOT = os.path.join(MEDIA_ROOT, "hashed")
+
+# If set to False, hashed_media_url behaves just like MEDIA_URL
+HASHEDMEDIA_ENABLED = True
+
+# Where to fetch the hashedmedia files on the web. Trailing slash required!
+HASHEDMEDIA_URL = MEDIA_URL + "hashed/"
+
+# The manifest file to pickle mappings to. This is fine to leave as-is.
+HASHEDMEDIA_MANIFEST = "manifest.txt"
+
+# Hashing algorithm to use (callable); sha1 seems to work fine.
+HASHEDMEDIA_HASHFUN = hashlib.sha1
+
+# Length of the generated filename. Must be lower than digest length.
+# 32 characters on sha1 is more than sufficient to avoid collisions.
+HASHEDMEDIA_DIGESTLENGTH = 32
+
+# When true, I will sweep the compressed directory of old files before putting
+# any new ones in there.
+HASHEDMEDIA_WIPEOLD = True
+
+# IMPORTANT! Set this to a unique value to prevent collisions with other sites!
+HASHEDMEDIA_CACHEKEY = "mysite_hashedmedia"
+
+# What follows are lists of binary files (which will just be renamed) and text
+# files (which will be preprocessed for filename substitution where
+# appropriate). We will look for these files off your MEDIA_ROOT folder.
+
+# A tuple of binary files. No preprocessing will be performed.
+HASHEDMEDIA_BINARY = (
+    
+    # List images to hash out like this...
+    os.path.join("images", "first.png"),
+    os.path.join("images", "second.jpg"),
+    os.path.join("images", "third.gif"),
+
+)
+
+# A tuple of text filenames. These will be preprocessed to look for URL links.
+# Notice how I am only processing files that have already been compressed 
+# (e.g. using django-compress). It is not required, but it is a good idea.
+HASHEDMEDIA_TEXT = (
+    
+    # JavaScript
+    os.path.join("compressed", "lib.js"),
+    
+    # CSS
+    os.path.join("compressed", "style.css"),
+    os.path.join("compressed", "msie6.css"),
+    os.path.join("compressed", "msie7.css"),
+)
+
+----------------------------------- 8< snip -----------------------------------
+
+Now import these settings in your settings.py file:
+
+    from settings_hashedmedia import *
+    
+... And you're good to go. Make sure you update the HASHEDMEDIA_BINARY and
+HASHEDMEDIA_TEXT values with new entries as you go -- otherwise the files will
+not be processed! This may seem needlessly explicit, but its structured
+approach makes it clear exactly what will be processed and how. It may also 
+help serve as a reminder to perform greater optimizations beyond what this 
+module is capable of doing; if you need to list hundreds of files you should
+probably look into using django-compress or similar tool to concatenate and 
+compress your text files, and consider using image sprites instead of
+individual graphics files.
+
+Note that in many cases developers will want a different configuration than the
+production server; this is taken care of for you if you use the Django buildout
+script. In this case, you should redefine the following settings in your
+developer.py (and production.py, as appropriate) configuration file:
+
+----------------------------------- 8< snip -----------------------------------
+
+# Make sure this points at the correct MEDIA_ROOT path!
+HASHEDMEDIA_ROOT = os.path.join(MEDIA_ROOT, "hashed")
+
+# Make sure this points at the correct base path if it's based on MEDIA_URL!
+HASHEDMEDIA_URL = MEDIA_URL = "hashed/"
+
+# Leave me disabled unless you are testing hashed media!
+HASHEDMEDIA_ENABLED = False
+
+# Use memcached back-end if available; otherwise fallback to locmem
+try:
+    import memcache
+    CACHE_BACKEND = 'memcached://127.0.0.1:11211/?timeout=480'
+except ImportError:
+    CACHE_BACKEND = 'locmem:///'
+
+----------------------------------- 8< snip -----------------------------------
+
+Usage
+=====
+
+There are effectively two components to using this tool in your site.
+
+The first is how to refer to your hashed media files. In templates:
+
+    <script type="text/javascript" src="{% hashed_media_url 'script.js' %}" 
+        charset="utf-8"></script>
+
+In CSS:
+
+    background-image: url(../images/yourimage.png);
+    
+If you are using this module in conjunction with django-compress, you might
+realize this becomes a bit more complex -- because you're coupling to filenames
+that are defined in your django-compress settings. It may be worth considering
+adding the following to your TEMPLATE_CONTEXT_PROCESSORS:
+
+    TEMPLATE_CONTEXT_PROCESSORS = (
+        # ...
+        'django_hashedmediaplus.context_processors.compress_settings',
+    )
+    
+This will expose your compress_js, and compress_css settings to templates so
+that you can write the following in your template:
+
+    {% hashed_media_url compress_js.scripts.output_filename %}
+
+... And it will load the hashed filename.
+
+You must generate the hashed filenames yourself as a django command. You 
+typically do this as part of a build/deploy process:
+
+    python manage.py generate_hashedmedia
+    
+Then they're ready to use. Remember to regenerate every time any of the static
+source media files are updated.
+
+N.B. that you will probably want to avoid checking such generated files into
+source control -- they will only ever have one revision each by design, which 
+means you're going to clutter your SCM tree with obsolete files. The exception 
+to this rule might be simplified deployment to production or staging
+environments where regenerating the files in question is a problem, although
+in most cases a tarballed media directory is sufficient to accomplish the same 
+task.
+
+

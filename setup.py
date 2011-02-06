@@ -15,7 +15,7 @@ setup(
     url='https://github.com/isolationism/django-hashedmediaplus',
     download_url='https://github.com/isolationism/django-hashedmediaplus/tarball/master',
     description='A fork of django-hashedmedia with some performance and functional enhancements',
-    packages=find_packages('django_hashedmediaplus'),
+    packages=find_packages(),
     include_package_data = False,
     install_requires = ['django'],
 )

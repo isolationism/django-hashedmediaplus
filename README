@@ -87,7 +87,7 @@ First, add django_hashedmediaplus to INSTALLED_APPS in settings.py:
 
     INSTALLED_APPS = (
         # ...
-        'django_hashedmedia',
+        'django_hashedmediaplus',
     )
 
 The best practice is probably to create a breakout settings file specifically

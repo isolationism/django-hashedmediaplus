@@ -10,7 +10,7 @@ setup(
     name='django-hashedmediaplus',
     author='Kevin Williams',
     author_email='kevin@weblivion.com',
-    version='0.1',
+    version='0.1.1',
     license='BEER-WARE',
     url='https://github.com/isolationism/django-hashedmediaplus',
     download_url='https://github.com/isolationism/django-hashedmediaplus/tarball/master',

@@ -99,6 +99,10 @@ Your settings file should look like this:
 
 import os, hashlib 
 
+# This is where we will look for files to create hashed copies of.
+# Added to accommodate needs for site franchising.
+HASHEDMEDIA_SOURCE = MEDIA_ROOT
+
 # This is where the hashed filenames will go. 
 HASHEDMEDIA_ROOT = os.path.join(MEDIA_ROOT, "hashed")
 

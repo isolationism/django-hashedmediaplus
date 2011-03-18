@@ -21,7 +21,7 @@ import re
 from pprint import pprint
 
 HASHEDMEDIA_ROOT = getattr(settings, 'HASHEDMEDIA_ROOT', settings.MEDIA_ROOT)
-
+HASHEDMEDIA_SOURCE = getattr(settings, 'HASHEDMEDIA_SOURCE', settings.MEDIA_ROOT)
 
 def _findmatch(root, itermatch, root_level=True):
     """Attempts to find files to hash; requires that the file be contained
@@ -31,7 +31,7 @@ def _findmatch(root, itermatch, root_level=True):
     if root_level:
         iterlist = []
         for fpath in itermatch:
-            iterlist.append( joinpath(settings.MEDIA_ROOT, fpath) )
+            iterlist.append( joinpath(HASHEDMEDIA_SOURCE, fpath) )
     else:
         iterlist = itermatch
     
@@ -77,9 +77,9 @@ def _substitute_links(filepath, bin_filemap):
             
             if replace_url:
                 dirtybuffer = True
-                re_foundurl = re.compile( r"../%s" % (fpath_rel) )
+                re_foundurl = re.compile( r"../%s" % (fpath_rel,) )
                 replace_filename = bin_filemap.get(fpath_abs)
-                replace_string = "url(%s)" % (replace_filename)
+                replace_string = "url(%s)" % (replace_filename,)
                 filecontents = re_foundurl.sub(replace_url, filecontents)
             
     # If the buffer is dirty write out a new temporary file and return it
@@ -128,7 +128,8 @@ class Command(BaseCommand):
         txt_paths = _findmatch(settings.MEDIA_ROOT, txt_list)
         for txtfile in txt_paths:
             newtxtfile = _substitute_links(txtfile, bin_filemap)
-            txt_filemap[newtxtfile] = hreg.hash_and_register(newtxtfile, txtfile)
+            txt_filemap[newtxtfile] = hreg.hash_and_register(newtxtfile,
+                                                             txtfile)
     
         # Process all files at once.
         all_filemap = deepcopy(bin_filemap)

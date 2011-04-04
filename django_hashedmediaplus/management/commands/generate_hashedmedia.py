@@ -12,7 +12,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_hashedmediaplus import hashfile, HashfileRegistry
-from os import listdir, mkdir
+from os import listdir, makedirs
 from copy import deepcopy
 from os.path import join as joinpath, exists, isdir, abspath
 from os import unlink
@@ -137,7 +137,7 @@ class Command(BaseCommand):
         
         # Create the hashedmedia root directory if it doesn't exist
         if not exists(HASHEDMEDIA_ROOT):
-            mkdir(HASHEDMEDIA_ROOT)
+            makedirs(HASHEDMEDIA_ROOT)
             
         # Wipe out old hashedmedia files if requested
         if wipeold:

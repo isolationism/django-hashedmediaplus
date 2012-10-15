@@ -35,8 +35,12 @@ HASHEDMEDIA_MANIFEST_PATH = joinpath(HASHEDMEDIA_ROOT, HASHEDMEDIA_MANIFEST)
 
 HASHEDMEDIA_CACHEKEY = getattr(settings, "HASHEDMEDIA_CACHEKEY", "django_hashedmedia")
 
+HASHEDMEDIA_DICT_KEY = 'HASHEDMEDIA_DICT'
+
+
 def digest(content):
     return urlsafe_b64encode(HASHEDMEDIA_HASHFUN(content).digest()[:HASHEDMEDIA_DIGESTLENGTH]).strip("=")
+
 
 class HashfileRegistry(object):
     """Stores a registry of hashfile entries."""
@@ -81,7 +85,9 @@ class HashfileRegistry(object):
         pickle.dump(cleandata, fhandle)
         fhandle.close()
         cache.delete(HASHEDMEDIA_CACHEKEY)
-        
+        if hasattr(settings, HASHEDMEDIA_DICT_KEY):
+            settings.__delattr__(HASHEDMEDIA_DICT_KEY)
+
         print "\nWrote updated manifest file: %s\n" % self.mapfile
         
         return 
@@ -105,13 +111,20 @@ class HashfileRegistry(object):
 
 
 def hashfile(filename, no_cache=False, actualfile=None):
-    fromcache = cache.get(HASHEDMEDIA_CACHEKEY)
+    if hasattr(settings, HASHEDMEDIA_DICT_KEY) and settings.HASHEDMEDIA_DICT:
+        fromcache = getattr(settings, HASHEDMEDIA_DICT_KEY)
+    else:
+        fromcache = cache.get(HASHEDMEDIA_CACHEKEY)
 
     # If the pickled data is not already in the cache, 
     # load it from the picklejar and cache it now. 
     if not fromcache and not no_cache:
         fromcache = HashfileRegistry().load()
         cache.set(HASHEDMEDIA_CACHEKEY, fromcache)
+
+    # Make sure we stow in settings so we stop hammering the cache server
+    if not hasattr(settings, HASHEDMEDIA_DICT_KEY):
+        setattr(settings, HASHEDMEDIA_DICT_KEY, fromcache)
         
     # When called from a tag, we want to return the hashfile or fail loudly.
     if fromcache and not no_cache:

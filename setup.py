@@ -17,6 +17,5 @@ setup(
     description='A fork of django-hashedmedia with some performance and functional enhancements',
     packages=find_packages(),
     include_package_data = False,
-    install_requires = ['django'],
 )
 
